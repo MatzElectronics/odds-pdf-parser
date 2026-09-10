@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oregon DHS ISP Extractor — Full Schema (Sec 1–17)</title>
+  <!--
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-  <!-- CDN load for PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  -->
+  <script src="lib/pyodide.js"></script>
+  <script src="lib/pdf.min.js"></script>
 
   <style>
     :root {
@@ -132,7 +135,8 @@ function updateFileName() {
 }
 
 // Set up PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.min.js';
+//pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 window.pdfState = {
   file: null,
@@ -155,7 +159,8 @@ async function initPyodide() {
     const micropip = pyodide.pyimport("micropip");
 
     status.innerText = "Installing pdfminer.six engine...";
-    await micropip.install("pdfminer.six");
+    //await micropip.install("pdfminer.six");
+    await micropip.install("./lib/pdfminer_six-20260107-py3-none-any.whl");
 
     status.innerText = "Ready!";
     btn.disabled = false;
