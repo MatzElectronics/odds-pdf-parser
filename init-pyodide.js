@@ -276,7 +276,7 @@ json.dumps(parsed_pages)
 
         // Map JSON Schema against Evaluated Controls
         status.innerText = "Mapping PDF data...";
-        const schemaPayload = await matchExtendedPCISchema(evaluatedPages);
+        const schemaPayload = await matchExtendedSchema(evaluatedPages);
         dynamicsOutput.innerText = JSON.stringify(schemaPayload, null, 2);
 
         status.innerText = "Parsing Complete!";

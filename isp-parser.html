@@ -189,7 +189,12 @@
         <pre id="rawOutput">Awaiting initialization...</pre>
       </div>
 
-      <div id="debug-visualizer-container" class="debug-container"></div>
+      <div class="card">
+        <div class="card-header">
+          <h3>PDF Parsing Visualizer <span class="badge">PDF Data</span></h3>
+        </div>
+        <div id="debug-visualizer-container" class="debug-container"></div>
+      </div>
     </div>
   </div>
 
@@ -198,10 +203,8 @@
   <script src="init-pyodide.js"></script>
 
   <script>
-
-
     // Extended Schema Matcher Function
-    async function matchExtendedISPSchema(pages) {
+    async function matchExtendedSchema(pages) {
       let allBlocks = pages.flatMap(p =>
         (p.text_blocks || []).map(tb => ({
           ...tb,
