@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Utility functions for UI interactions, regex string matching,
+ * layout section isolation, table line/cell reconstruction, coordinate-based text mapping,
+ * shape deduplication, and canvas-based checkbox pixel evaluation for Oregon DHS ISP PDFs.
+ */
+
+/**
+ * Updates the UI file name label element when a user selects a file via the input element.
+ *
+ * @function updateFileName
+ * @returns {void}
+ */
 function updateFileName() {
     const input = document.getElementById("pdfFile");
     if (input.files.length > 0) {
@@ -5,12 +17,25 @@ function updateFileName() {
     }
 }
 
+/**
+ * Copies the raw JSON string present in the `#dynamicsOutput` element to the system clipboard.
+ *
+ * @function copyPayload
+ * @returns {void}
+ */
 function copyPayload() {
     const content = document.getElementById("dynamicsOutput").innerText;
     navigator.clipboard.writeText(content);
     alert("Payload copied to clipboard!");
 }
 
+/**
+ * Exports and downloads the generated structured JSON output as a `.json` file,
+ * deriving the output filename from the input PDF filename.
+ *
+ * @function downloadPayload
+ * @returns {void}
+ */
 function downloadPayload() {
   const content = document.getElementById("dynamicsOutput").innerText;
   const blob = new Blob([content], { type: 'application/json' });
@@ -26,11 +51,31 @@ function downloadPayload() {
   URL.revokeObjectURL(fileUrl); // Clear memory
 };
 
+/**
+ * Matches a Regular Expression against a target text string and returns the first capture group.
+ *
+ * @function matchPattern
+ * @param {string} text - The input text string to search.
+ * @param {RegExp} regex - Regular Expression pattern containing at least one capture group.
+ * @returns {string|null} The trimmed string content of capture group 1, or `null` if no match is found.
+ */
 function matchPattern(text, regex) {
     const m = text.match(regex);
     return m ? m[1].trim() : null;
 }
 
+/**
+ * Isolates a subset of text blocks bounded between two section header markers.
+ *
+ * @function isolateSection
+ * @param {Array<Object>} allBlocks - Array of text block objects with a `.text` property.
+ * @param {string} sectionHeader - The prefix string that denotes the start of the section.
+ * @param {string} nextSectionHeader - The prefix string that denotes the start of the following section.
+ * @returns {Array} Tuple containing `[secBlocks, secText, endBlock]` where:
+ *   - `secBlocks` {Array<Object>} List of text blocks within the section bounds.
+ *   - `secText` {string} Multiline newline-joined text of all isolated blocks.
+ *   - `endBlock` {Object|null} The block that triggered the section end, if matched.
+ */
 function isolateSection(allBlocks, sectionHeader, nextSectionHeader) {
     let secBlocks = [];
     let inSec = false;
@@ -59,14 +104,16 @@ function isolateSection(allBlocks, sectionHeader, nextSectionHeader) {
 /**
  * Filters and sorts table lines strictly contained within specified global coordinate ranges.
  *
- * @param {Array} shapes - The 'shapes' array from parsed pages (or concatenated shapes across pages)
- * @param {Object} options
- * @param {string} options.type - 'horizontal' ('h') or 'vertical' ('v')
- * @param {Array<number>} [options.xRange] - [minX, maxX] global X range constraint
- * @param {Array<number>} [options.yRange] - [minY, maxY] global Y range constraint
- * @param {number} [options.page] - Optional page number filter
- * @param {number} [options.tolerance=0.5] - Coordinate matching tolerance (in pt)
- * @returns {Array<Object>} Sorted list of matching line objects
+ * @function getLinesInRange
+ * @param {Array<Object>} shapes - The 'shapes' array from parsed pages (or concatenated shapes across pages).
+ * @param {Object} [options={}] - Configuration options for range filtering.
+ * @param {string} options.type - 'horizontal' ('h') or 'vertical' ('v').
+ * @param {Array<number>} [options.xRange] - [minX, maxX] global X range constraint.
+ * @param {Array<number>} [options.yRange] - [minY, maxY] global Y range constraint.
+ * @param {number} [options.page] - Optional page number filter.
+ * @param {number} [options.tolerance=1.0] - Coordinate matching tolerance (in pt).
+ * @throws {Error} Throws if the `type` parameter is not valid horizontal or vertical line designations.
+ * @returns {Array<Object>} Sorted list of matching line objects.
  */
 function getLinesInRange(shapes, options = {}) {
     const { type, xRange, yRange, page, tolerance = 1.0 } = options;
@@ -165,8 +212,9 @@ function getLinesInRange(shapes, options = {}) {
 /**
  * Converts pre-filtered and pre-sorted table line arrays into structured cell bounding boxes.
  *
- * @param {Array<Object>} tables - Array of table objects with clean `h_lines` and `v_lines`
- * @returns {Array<Object>} Tables containing rows and individual cell bounding boxes
+ * @function generateCellBoundingBoxes
+ * @param {Array<Object>} tables - Array of table objects containing clean `h_lines` and `v_lines` arrays.
+ * @returns {Array<Object>} Processed table structures containing rows and individual cell bounding boxes.
  */
 function generateCellBoundingBoxes(tables) {
     return tables.map((table, tableIndex) => {
@@ -264,12 +312,14 @@ function generateCellBoundingBoxes(tables) {
 /**
  * Maps text blocks into table cell bounding boxes and transforms rows into structured objects.
  *
- * @param {Object} tableGrid - Single table object output from generateCellBoundingBoxes
- * @param {Array<Object>} textBlocks - Array of text block objects with spatial coordinates
- * @param {Array<string>} columnKeys - Array of key names for each column in order
- * @param {Object} [options]
- * @param {number} [options.tolerance=2.0] - Point tolerance for bounding box containment
- * @returns {Array<Object>} Formatted tableRows array
+ * @function mapTextToTableRows
+ * @param {Object} tableGrid - Single table object output from `generateCellBoundingBoxes`.
+ * @param {Array<Object>} textBlocks - Array of text block objects with spatial bounding box coordinates.
+ * @param {Array<string>} columnKeys - Ordered list of output object keys corresponding to columns.
+ * @param {Object} [options={}] - Additional configuration options.
+ * @param {number} [options.tolerance=2.0] - Point tolerance for bounding box containment.
+ * @param {string} [options.joinStr=" "] - Delimiter string used when concatenating multi-line text within a cell.
+ * @returns {Array<Object>} List of structured row objects mapping cell values to column keys.
  */
 function mapTextToTableRows(tableGrid, textBlocks, columnKeys, options = {}) {
     const { tolerance = 2.0 } = options;
@@ -349,10 +399,11 @@ function mapTextToTableRows(tableGrid, textBlocks, columnKeys, options = {}) {
  * Deduplicates overlapping vector controls (e.g., stacked rects/curves),
  * retaining only the largest parent bounding box per region.
  *
- * @param {Array<Object>} shapes - Raw shapes extracted from PDF page
- * @param {Object} [options]
- * @param {number} [options.maxCentroidDistance=12.0] - Max distance to merge overlapping controls
- * @returns {Array<Object>} Deduplicated top-level control objects
+ * @function groupShapesByLargestParent
+ * @param {Array<Object>} shapes - Raw shapes extracted from PDF page.
+ * @param {Object} [options={}] - Clustering options.
+ * @param {number} [options.maxCentroidDistance=12.0] - Max Euclidean distance between centroids to merge overlapping controls.
+ * @returns {Array<Object>} Deduplicated top-level control objects.
  */
 function groupShapesByLargestParent(shapes, options = {}) {
     const { maxCentroidDistance = 12.0 } = options;
@@ -429,7 +480,16 @@ function groupShapesByLargestParent(shapes, options = {}) {
     return topLevelControls;
 }
 
-// 3. Canvas Pixel Inspector Bridge
+/**
+ * Coordinates form control extraction across pages, deduplicating controls and invoking canvas inspection.
+ *
+ * @async
+ * @function processCanvasFormControls
+ * @param {Object} pdfDoc - Active PDF.js document instance.
+ * @param {Array<Object>} parsedPages - Parsed pages array containing shape vectors and text blocks.
+ * @param {number} [scale=2.0] - Render resolution multiplier for canvas pixel sampling.
+ * @returns {Promise<Array<Object>>} Resolved pages array with evaluated shape states.
+ */
 async function processCanvasFormControls(pdfDoc, parsedPages, scale = 2.0) {
     for (const pageObj of parsedPages) {
         const pageNum = pageObj.page;
@@ -454,7 +514,17 @@ async function processCanvasFormControls(pdfDoc, parsedPages, scale = 2.0) {
     return parsedPages;
 }
 
-// 4. Canvas Pixel Evaluator Execution
+/**
+ * Renders a PDF page to an offscreen HTML5 canvas element and analyzes dark pixel ratios
+ * within control bounding boxes to determine if checkboxes or radio options are checked.
+ *
+ * @async
+ * @function evaluateControlsWithCanvas
+ * @param {Object} pdfPage - PDF.js page proxy object.
+ * @param {Array<Object>} controls - List of shape control objects to evaluate.
+ * @param {number} [scale=2.0] - Scale factor used for rendering high-DPI canvas coordinates.
+ * @returns {Promise<Array<Object>>} Controls with updated `is_checked` boolean properties.
+ */
 async function evaluateControlsWithCanvas(pdfPage, controls, scale = 2.0) {
     const viewport = pdfPage.getViewport({ scale: 1.0 });
     const canvas = document.createElement("canvas");
@@ -513,10 +583,12 @@ async function evaluateControlsWithCanvas(pdfPage, controls, scale = 2.0) {
  * Global helper to check if a target phrase has an associated checked shape (checkbox/radio)
  * or contains inline text check symbols ([X], ☑, etc.).
  *
- * @param {string} targetPhrase - The label text to search for.
- * @param {Array} allBlocks - Flat list of all text blocks across all pages.
- * @param {Array} allShapes - Flat list of all evaluated shapes (checkboxes/radios) across all pages.
- * @returns {boolean}
+ * @function isOptionChecked
+ * @param {string} targetPhrase - The label text to search for within text blocks.
+ * @param {Array<Object>} [allBlocks=[]] - Flat list of all text blocks across all pages.
+ * @param {Array<Object>} [allShapes=[]] - Flat list of all evaluated shapes (checkboxes/radios) across all pages.
+ * @param {Array<number>|null} [bbox=null] - Optional bounding box filter `[x0, y0, x1, y1]` to constrain search area.
+ * @returns {boolean} True if the option is evaluated as checked, otherwise false.
  */
 function isOptionChecked(targetPhrase, allBlocks = [], allShapes = [], bbox = null) {
     const targetLower = targetPhrase.toLowerCase();
