@@ -76,24 +76,46 @@ function matchPattern(text, regex) {
  *   - `secText` {string} Multiline newline-joined text of all isolated blocks.
  *   - `endBlock` {Object|null} The block that triggered the section end, if matched.
  */
-function isolateSection(allBlocks, sectionHeader, nextSectionHeader) {
+function isolateSection(allBlocks, sectionHeader, nextSectionHeader, options = {sortBlocksFirst: false, useRegex: false}) {
     let secBlocks = [];
     let inSec = false;
     let endBlock = null;
+    let parseBlocks = allBlocks;
 
-    allBlocks.forEach((b) => {
-        const txt = b.text.trim();
-        if (b.text.trim().startsWith(sectionHeader) && !endBlock) {
-            inSec = true;
-        }
-        if (b.text.trim().startsWith(nextSectionHeader)) {
-            inSec = false;
-            endBlock = b;
-        }
-        if (inSec) {
-            secBlocks.push(b);
-        }
-    });
+    if (options.sortBlocksFirst !== false) {
+        parseBlocks = parseBlocks.sort((a, b) => Math.round(a.bbox[0] / options.sortBlocksFirst) - Math.round(b.bbox[0] / options.sortBlocksFirst));
+        parseBlocks = parseBlocks.sort((a, b) => Math.round(a.global_bbox[1] / options.sortBlocksFirst) - Math.round(b.global_bbox[1] / options.sortBlocksFirst));
+    }
+
+    if (options.useRegex) {
+        parseBlocks.forEach((b) => {
+            const txt = b.text.trim();
+            if (sectionHeader.test(b.text) && !endBlock) {
+                inSec = true;
+            }
+            if (nextSectionHeader.test(b.text)) {
+                inSec = false;
+                endBlock = b;
+            }
+            if (inSec) {
+                secBlocks.push(b);
+            }
+        });    
+    } else {
+        parseBlocks.forEach((b) => {
+            const txt = b.text.trim();
+            if (b.text.trim().startsWith(sectionHeader) && !endBlock) {
+                inSec = true;
+            }
+            if (b.text.trim().startsWith(nextSectionHeader)) {
+                inSec = false;
+                endBlock = b;
+            }
+            if (inSec) {
+                secBlocks.push(b);
+            }
+        });
+    }
 
     const lines = secBlocks.map((b) => b.text);
     const secText = lines.join("\n");
@@ -647,4 +669,9 @@ function isOptionChecked(targetPhrase, allBlocks = [], allShapes = [], bbox = nu
     }
 
     return false;
+}
+
+// Render Debug Visualizer SVG Overlay
+if (typeof renderParsedPdfSvg !== "function" && document.getElementById('pdf-view')) {
+    document.getElementById('pdf-view').style.display = 'none';
 }

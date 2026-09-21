@@ -189,7 +189,7 @@
         <pre id="rawOutput">Awaiting initialization...</pre>
       </div>
 
-      <div class="card">
+      <div class="card" id="pdf-view">
         <div class="card-header">
           <h3>PDF Parsing Visualizer <span class="badge">PDF Data</span></h3>
         </div>
@@ -428,25 +428,30 @@
       /**
        * Helper: Extracts barriers table using Section 3 line-range and cell mapping techniques.
        */
-      function parseBarriersTable() {
-        const topAnchor = secBlocks.find(b => /^Is currently receiving or requesting pre-employment\b/i.test(b.text.trim()));
-        const bottomAnchor = secBlocks.find(b => (/^Chosen case management services\b/i.test(b.text.trim()) || /^Desired employment outcomes\b/i.test(b.text.trim())));
+      function parseBarriersTable(topAnchorRegex, bottomAnchorRegex, boundsYadjust = 0) {
+        const topAnchor = secBlocks.find(b => topAnchorRegex.test(b.text.trim()));
+        const bottomAnchor = secBlocks.find(b => (bottomAnchorRegex.test(b.text.trim()) || /^Desired employment outcomes\b/i.test(b.text.trim())));
+
         if (!bottomAnchor || !topAnchor) return [];
 
-        const barrierBlocks = secBlocks.filter(b => b.global_bbox[1] > topAnchor.global_bbox[3] && b.global_bbox[1] < bottomAnchor.global_bbox[1]);
-        const topBound = topAnchor.global_bbox[3] - 2;
+        let barrierBlocks = secBlocks.filter(b => b.global_bbox[1] > topAnchor.global_bbox[boundsYadjust != 0 ? 1 : 3] + boundsYadjust && b.global_bbox[1] < bottomAnchor.global_bbox[1]);
+
+        //barrierBlocks = barrierBlocks.sort((a, b) => Math.round(a.bbox[0] / 15) - Math.round(b.bbox[0] / 15));
+        //barrierBlocks = barrierBlocks.sort((a, b) => Math.round(a.global_bbox[1] / 15) - Math.round(b.global_bbox[1] / 15));
+
+        const topBound = topAnchor.global_bbox[boundsYadjust != 0 ? 1 : 3] - 2 + boundsYadjust;
         const bottomBound = barrierBlocks ? barrierBlocks[barrierBlocks.length - 1].global_bbox[3] + 5 : 999999;
 
         const tableLines = [{
           h_lines: getLinesInRange(allShapes, {
             type: 'h',
             yRange: [topBound, bottomBound],
-            xRange: [8, 770]
+            xRange: [20, 765]
           }),
           v_lines: getLinesInRange(allShapes, {
             type: 'v',
             yRange: [topBound, bottomBound],
-            xRange: [8, 770]
+            xRange: [20, 765]
           })
         }];
 
@@ -554,7 +559,7 @@
       // --- OPTION 1: Transition Planning ---
       if (secText.includes("Transition planning")) {
         return {
-          type: "Option 1 - Transition Planning",
+          type: "Transition Planning",
           highestEducationLevelCompleted: highestEducation,
           expectedDateOfExitFromSchool: matchPattern(secText, /Expected date of exit from school:\s*([^\n]+)/i),
           checkboxes: {
@@ -565,7 +570,7 @@
             attendingSchoolNotReceivingSupports: checkOption("not receiving any employment supports"),
             receivingOrRequestingVrServices: checkOption("Vocational Rehabilitation")
           },
-          barriersTable: parseBarriersTable(),
+          barriersTable: parseBarriersTable(/^Is currently receiving or requesting pre-employment\b/i, /^Chosen case management services\b/i),
           employmentOutcomes: parseOutcomesTables()
         };
       }
@@ -575,16 +580,18 @@
         const isReceivingVR = checkOption("Currently receiving VR services");
         const isRequestingVR = checkOption("Wants a referral to VR");
 
+        let [subSecBlocks, subSecText, subEndBlock] = isolateSection(secBlocks, "Working-age adults", "Desired employment outcomes", {sortBlocksFirst: 20});
+
         return {
-          type: "Option 2 - Working-Age Adults",
+          type: "Working-Age Adults",
           highestEducationLevelCompleted: highestEducation,
           statusWithVR: isReceivingVR ? "Currently receiving VR services" : (isRequestingVR ? "Wants a referral to VR" : "Other/not applicable"),
-          notes: matchPattern(secText, /Notes:\s*([^\n]+)/i),
+          notes: matchPattern(subSecText, /Notes:\s*([\s\S]*)Describe .*? current employment status/i),
 
-          subsectionA: secText.includes("Currently working in competitive") ? {
-            hoursInCompetitiveEmployment: matchPattern(secText, /(\d+)\s*hours in competitive,\s*integrated employment/i),
-            hoursInSmallGroupEmployment: matchPattern(secText, /(\d+)\s*hours in small group employment/i),
-            desiredHoursCompetitiveEmployment: matchPattern(secText, /(\d+)\s*hours\s*2\.\s*How many hours a week does .*? want to work/i),
+          currentlyWorking: secText.includes("Currently working in competitive") ? {
+            hoursInCompetitiveEmployment: matchPattern(subSecText, /(\d+)\s*hours in competitive,\s*integrated employment/i),
+            hoursInSmallGroupEmployment: matchPattern(subSecText, /(\d+)\s*hours in small group employment/i),
+            desiredHoursCompetitiveEmployment: matchPattern(subSecText, /(\d+)\s*hours\s*2\.\s*How many hours a week does .*? want to work/i),
             checkboxes: {
               retainCurrentJob: checkOption("Retain current job"),
               advanceInCurrentJob: checkOption("Advance in current job"),
@@ -594,11 +601,11 @@
               retire: checkOption("Retire — is at least 60 years old"),
               noLongerContinue: checkOption("No longer continue")
             }
-          } : null,
+          } : false,
 
-          subsectionB: secText.includes("Currently not working in competitive") ? {
-            desiredCompetitiveHours: matchPattern(secText, /Get competitive, integrated employment for\s*(\d+)\s*hours per week/i),
-            desiredSmallGroupHours: matchPattern(secText, /Get small group employment for\s*(\d+)\s*hours per week/i),
+          currentlyNotWorking: secText.includes("Currently not working in competitive") ? {
+            desiredCompetitiveHours: matchPattern(subSecText, /Get competitive, integrated employment for\s*([\s\S]+?)\s*hours per week/i),
+            desiredSmallGroupHours: matchPattern(subSecText, /Get small group employment for\s*([\s\S]+?)\s*hours per week/i),
             checkboxes: {
               getCompetitiveEmploymentHours: checkOption("Get competitive, integrated employment"),
               getSmallGroupHours: checkOption("Get small group employment"),
@@ -606,9 +613,10 @@
               retire: checkOption("Retire — is at least 60 years old"),
               notExploreAtThisTime: checkOption("Not explore integrated employment")
             }
-          } : null,
+          } : false,
 
-          subsectionC_barriersTable: parseBarriersTable()
+          barriersTable: parseBarriersTable(/^How will barriers be addressed\?/i, /^Desired outcomes/i, -5),
+          employmentOutcomes: parseOutcomesTables()
         };
       }
 
@@ -616,7 +624,7 @@
       if (secText.includes("No career development plan")) {
         const isUnder14 = checkOption("under age 14");
         return {
-          type: "Option 3 - No Career Development Plan",
+          type: "No Career Development Plan",
           highestEducationLevelCompleted: highestEducation,
           reason: isUnder14 ? "Reason A: Under age 14" : "Reason B: At least 60 years old"
         };
