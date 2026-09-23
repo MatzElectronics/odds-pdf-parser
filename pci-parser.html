@@ -223,10 +223,10 @@
       return {
         generalInfo: parseGeneralInfo(fullText),
         communication: parseCommunication(allBlocks),
-        currentLivingArrangements: parseCurrentLiving(allBlocks),
+        livingarrangements: parseCurrentLiving(allBlocks),
         employmentOrWork: parseEmployment(allBlocks),
         schoolAndLearning: parseSchoolAndLearning(allBlocks),
-        communityAndSocialLife: parseCommunityAndSocialLife(allBlocks),
+        community: parseCommunityAndSocialLife(allBlocks),
         relationshipMap: parseRelationshipMap(allBlocks, allShapes),
         relationshipPerspectives: parseRelationshipPerspectives(allBlocks),
         peopleWhoSupport: parsePeopleWhoSupport(allBlocks),
@@ -261,9 +261,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
       }
     }
 
@@ -272,9 +272,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
       }
     }
 
@@ -284,9 +284,9 @@
 
       return {
         preEmploymentOrWork: {
-          youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-          familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-          additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Employment-related skills|$)/i) || ""
+          personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+          familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+          additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Employment-related skills|$)/i) || ""
         },
         relatedSkills: matchPattern(secText, /reliability, areas of focus at school, etc\.\s*([\s\S]*?)(?=Employment-related preferences|$)/i) || "",
         preferences: matchPattern(secText, /distance from home, type of job, type of tasks, pace, etc\.\s*([\s\S]*?)(?=$)/i) || "",
@@ -298,9 +298,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
       }
     }
 
@@ -309,9 +309,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
       }
     }
 
@@ -354,9 +354,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
       }
     }
 
@@ -365,9 +365,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Health and wellness|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Health and wellness|$)/i) || ""
       }
     }
 
@@ -376,9 +376,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Financial life|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Financial life|$)/i) || ""
       }
     }
 
@@ -387,9 +387,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Protection and advocacy|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Protection and advocacy|$)/i) || ""
       }
     }
 
@@ -398,9 +398,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Cultural considerations|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Cultural considerations|$)/i) || ""
       }
     }
 
@@ -409,9 +409,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Sexuality|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Sexuality|$)/i) || ""
       }
     }
 
@@ -420,9 +420,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Concerns about mental health, relationship with any|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Concerns about mental health, relationship with any|$)/i) || ""
       }
     }
 
@@ -431,9 +431,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Concerns about behavioral health, relationship with any|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Concerns about behavioral health, relationship with any|$)/i) || ""
       }
     }
 
@@ -442,9 +442,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=To\/from school, activities, or work, learning how|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=To\/from school, activities, or work, learning how|$)/i) || ""
       }
     }
 
@@ -453,9 +453,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Assistive devices \(AD\) or technology \(AT\)|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Assistive devices \(AD\) or technology \(AT\)|$)/i) || ""
       }
     }
 
@@ -464,9 +464,9 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Environmental modifications needed to increase|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Environmental modifications needed to increase|$)/i) || ""
       }
     }
 
@@ -475,21 +475,21 @@
       if (secBlocks.length === 0) return null;
 
       return {
-        youthPerspective: matchPattern(secText, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyPerspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalInfo: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Hopes and dreams|$)/i) || ""
+        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
+        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
+        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Hopes and dreams|$)/i) || ""
       }
     }
 
     function parseOtherPlanningDocuments(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "List other available documents that can be referenced for more information:", "Contributors to youth's perspective");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "List other available documents that can be referenced for more information:", "Contributors to (youth|person)'s perspective");
       if (secBlocks.length === 0) return null;
 
-      return matchPattern(secText, /documents that can be referenced for more information:\s*([\s\S]*?)(?=Contributors to youth's perspective|$)/i) || ""
+      return matchPattern(secText, /documents that can be referenced for more information:\s*([\s\S]*?)(?=Contributors to (youth|person)'s perspective|$)/i) || ""
     }
 
     function parseContributersToYouthPerspective(allBlocks, allShapes) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Contributors to youth's perspective", "Contributors to family and/or guardian's perspective");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Contributors to (youth|person)'s perspective", "Contributors to family and/or guardian's perspective");
       if (secBlocks.length === 0) return null;
 
       const topBound = secBlocks[0].global_bbox[3] - 2;
