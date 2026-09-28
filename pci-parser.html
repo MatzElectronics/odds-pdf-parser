@@ -571,7 +571,7 @@
     }
 
     function parseMentalHealth(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Concerns about mental health; relationship with any", "Behavioral health");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, /Concerns about mental health[;,] relationship with any/g, /Behavioral health/g, {useRegex: true});
       let secName = "Health and Wellness: Mental Health";
       if (secBlocks.length === 0) return {systemInfo: secName};
       return parseSection(secText, secName);
