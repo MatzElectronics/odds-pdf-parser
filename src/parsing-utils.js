@@ -26,7 +26,10 @@ function updateFileName() {
 function copyPayload() {
     const content = document.getElementById("dynamicsOutput").innerText;
     navigator.clipboard.writeText(content);
-    alert("Payload copied to clipboard!");
+    document.getElementById("copy-payload-btn").innerText = "Copied!";
+    setTimeout(() => {
+        document.getElementById("copy-payload-btn").innerText = "Copy JSON";
+    }, 2500);
 }
 
 /**
