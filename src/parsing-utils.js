@@ -104,7 +104,7 @@ function isolateSection(allBlocks, sectionHeader, nextSectionHeader, options = {
     } else {
         parseBlocks.forEach((b) => {
             const txt = b.text.trim();
-            if (b.text.trim().startsWith(sectionHeader) && !endBlock) {
+            if (b.text.trim().indexOf(sectionHeader) > -1 && !endBlock) {
                 inSec = true;
             }
             if (b.text.trim().startsWith(nextSectionHeader)) {

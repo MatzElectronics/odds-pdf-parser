@@ -198,11 +198,16 @@
     </div>
   </div>
 
-  <!-- <script src="src/pdf-svg-render.js"></script> -->
+  <script src="src/pdf-svg-render.js"></script>
   <script src="src/parsing-utils.js"></script>
   <script src="src/init-pyodide.js"></script>
 
   <script>
+    window.pciMode = {
+      adult: false,
+      familyperspective: true,
+    };
+
     // Extended Schema Matcher Function
     async function matchExtendedSchema(pages) {
       let allBlocks = pages.flatMap(p =>
@@ -220,39 +225,192 @@
 
       const checkOption = (phrase, bbox = null) => isOptionChecked(phrase, allBlocks, allShapes, bbox);
 
-      return {
-        generalInfo: parseGeneralInfo(fullText),
+      pciMode.adult = !allBlocks.find(b => b.text == "Youth's perspective:");
+      //const isNotForYouth = !!allBlocks.find(b => b.text == "Person's perspective:");
+      pciMode.familyperspective = !!allBlocks.find(b => b.text == "Family and/or guardian's perspective:");
+        
+      const outputValues = {
+        generalinfo: parseGeneralInfo(fullText),
         communication: parseCommunication(allBlocks),
         livingarrangements: parseCurrentLiving(allBlocks),
-        employmentOrWork: parseEmployment(allBlocks),
-        schoolAndLearning: parseSchoolAndLearning(allBlocks),
+        employment: parseEmployment(allBlocks),
+        school: parseSchoolAndLearning(allBlocks),
         community: parseCommunityAndSocialLife(allBlocks),
         relationshipMap: parseRelationshipMap(allBlocks, allShapes),
-        relationshipPerspectives: parseRelationshipPerspectives(allBlocks),
-        peopleWhoSupport: parsePeopleWhoSupport(allBlocks),
-        healthAndWellness: parseHealthAndWellness(allBlocks),
-        financialLife: parseFinancialLife(allBlocks),
-        protectionAndAdvocacy: parseProtectionAndAdvocacy(allBlocks),
-        sexulaity: parseSexulaity(allBlocks),
-        mentalHealth: parseMentalHealth(allBlocks),
-        behavioralHealth: parseBehavioralHealth(allBlocks),
+        relationships: parseRelationshipPerspectives(allBlocks),
+        peoplewhosupport: parsePeopleWhoSupport(allBlocks),
+        healthwellness: parseHealthAndWellness(allBlocks),
+        financial: parseFinancialLife(allBlocks),
+        protectionadvocacy: parseProtectionAndAdvocacy(allBlocks),
+        cultural: parseCulturalConsiderations(allBlocks),
+        sexuality: parseSexuality(allBlocks),
+        mentalhealth: parseMentalHealth(allBlocks),
+        behavioralhealth: parseBehavioralHealth(allBlocks),
         transportation: parseTransportation(allBlocks),
-        assistiveTechnology: parseAssistiveTechnology(allBlocks),
-        hopesAndDreams: parseHopesAndDreams(allBlocks),
-        otherPlanningDocuments: parseOtherPlanningDocuments(allBlocks),
+        devicetechnology: parseAssistiveTechnology(allBlocks),
+        environmentalmod: parseEnvironmentalModifications(allBlocks),
+        hopesdreams: parseHopesAndDreams(allBlocks),
+        otheravailabledocuments: parseOtherPlanningDocuments(allBlocks),  // double-check "otheravailabledocuments"
         contributersToYouthPerspectiveTable: parseContributersToYouthPerspective(allBlocks, allShapes),
         contributersToGuardianPerspectiveTable: parseContributersToGuardianPerspective(allBlocks, allShapes),
         contributersToAdditionalInputTable: parseContributersToAdditionalInput(allBlocks, allShapes)
       }
+
+      let sysInfo = '';
+      for (key in outputValues) {
+        if (outputValues[key]?.systemInfo ?? false) {
+          sysInfo += '\n' + outputValues[key].systemInfo;
+        }
+      }
+
+      const outputResult = {
+        system_info: sysInfo === '' ? null : sysInfo,
+
+        preferredname: outputValues.generalinfo.preferredname,
+        dateofbirth: outputValues.generalinfo.dateofbirth ?? null,
+
+        agecategory: outputValues.generalinfo.agecategory == 'Adult' ? 592570001 : 592570000,
+        familyguardian_perspective_needed: outputValues.generalinfo.familyguardian_perspective_needed == 'Yes' ? true : false,
+        dateofassessment: outputValues.generalinfo.dateofassessment,
+
+        youthperspective_livingarrangements: outputValues.livingarrangements?.youthperspective ?? null,
+        personperspective_livingarrangements: outputValues.livingarrangements?.personperspective ?? null,
+        familyguardian_livingarrangements: outputValues.livingarrangements?.familyperspective ?? null,
+        additionalinput_livingarrangements: outputValues.livingarrangements?.additionalinput ?? null,
+
+        youthperspective_communication: outputValues.communication?.youthperspective ?? null,
+        personperspective_communication: outputValues.communication?.personperspective ?? null,
+        familyguardian_communication: outputValues.communication?.familyperspective ?? null,
+        additionalinput_communication: outputValues.communication?.additionalinput ?? null, 
+
+        youthperspective_community: outputValues.community?.youthperspective ?? null,
+        personperspective_community: outputValues.community?.personperspective ?? null,
+        familyguardian_community: outputValues.community?.familyperspective ?? null,
+        additionalinput_community: outputValues.community?.additionalinput ?? null, 
+
+
+        youthperspective_preemployment: outputValues.employment?.preemployment.youthperspective ?? null,
+        personperspective_preemployment: outputValues.employment?.preemployment.personperspective ?? null,
+        familyguardian_preemployment: outputValues.employment?.preemployment.familyperspective ?? null,
+        additionalinput_preemployment: outputValues.employment?.preemployment.additionalinput ?? null,
+        employmentskills: outputValues.employment?.employmentskills ?? null,
+        employmentpreferences: outputValues.employment?.preferences ?? null,
+
+        youthperspective_school: outputValues.school?.youthperspective ?? null,
+        personperspective_school: outputValues.school?.personperspective ?? null,
+        familyguardian_school: outputValues.school?.familyperspective ?? null,
+        additionalinput_school: outputValues.school?.additionalinput ?? null,
+
+
+        youthperspective_behavioralhealth: outputValues.behavioralhealth?.youthperspective ?? null,
+        personperspective_behavioralhealth: outputValues.behavioralhealth?.personperspective ?? null,
+        familyguardian_behavioralhealth: outputValues.behavioralhealth?.familyperspective ?? null,
+        additionalinput_behavioralhealth: outputValues.behavioralhealth?.additionalinput ?? null,
+
+        youthperspective_healthwellness: outputValues.healthwellness?.youthperspective ?? null,
+        personperspective_healthwellness: outputValues.healthwellness?.personperspective ?? null,
+        familyguardian_healthwellness: outputValues.healthwellness?.familyperspective ?? null,
+        additionalinput_healthwellness: outputValues.healthwellness?.additionalinput ?? null,
+
+        youthperspective_mentalhealth: outputValues.mentalhealth?.youthperspective ?? null,
+        personperspective_mentalhealth: outputValues.mentalhealth?.personperspective ?? null,
+        familyguardian_mentalhealth: outputValues.mentalhealth?.familyperspective ?? null,
+        additionalinput_mentalhealth: outputValues.mentalhealth?.additionalinput ?? null,
+
+        youthperspective_sexuality: outputValues.sexuality?.youthperspective ?? null,
+        personperspective_sexuality: outputValues.sexuality?.personperspective ?? null,
+        familyguardian_sexuality: outputValues.sexuality?.familyperspective ?? null,
+        additionalinput_sexuality: outputValues.sexuality?.additionalinput ?? null,
+
+
+        youthperspective_financial: outputValues.financial?.youthperspective ?? null,
+        personperspective_financial: outputValues.financial?.personperspective ?? null,
+        familyguardian_financial: outputValues.financial?.familyperspective ?? null,
+        additionalinput_financial: outputValues.financial?.additionalinput ?? null,
+
+        youthperspective_cultural: outputValues.cultural?.youthperspective ?? null,
+        personperspective_cultural: outputValues.cultural?.personperspective ?? null,
+        familyguardian_cultural: outputValues.cultural?.familyperspective ?? null,
+        additionalinput_cultural: outputValues.cultural?.additionalinput ?? null,
+
+        youthperspective_transportation: outputValues.transportation?.youthperspective ?? null,
+        personperspective_transportation: outputValues.transportation?.personperspective ?? null,
+        familyguardian_transportation: outputValues.transportation?.familyperspective ?? null,
+        additionalinput_transportation: outputValues.transportation?.additionalinput ?? null,
+
+        youthperspective_protectionadvocacy: outputValues.protectionadvocacy?.youthperspective ?? null,
+        personperspective_protectionadvocacy: outputValues.protectionadvocacy?.personperspective ?? null,
+        familyguardian_protectionadvocacy: outputValues.protectionadvocacy?.familyperspective ?? null,
+        additionalinput_protectionadvocacy: outputValues.protectionadvocacy?.additionalinput ?? null,
+
+        youthperspective_devicetechnology: outputValues.devicetechnology?.youthperspective ?? null,
+        personperspective_devicetechnology: outputValues.devicetechnology?.personperspective ?? null,
+        familyguardian_devicetechnology: outputValues.devicetechnology?.familyperspective ?? null,
+        additionalinput_devicetechnology: outputValues.devicetechnology?.additionalinput ?? null,
+
+        youthperspective_environmentalmod: outputValues.environmentalmod?.youthperspective ?? null,
+        personperspective_environmentalmod: outputValues.environmentalmod?.personperspective ?? null,
+        familyguardian_environmentalmod: outputValues.environmentalmod?.familyperspective ?? null,
+        additionalinput_environmentalmod: outputValues.environmentalmod?.additionalinput ?? null,
+
+
+        importantfamily: outputValues.relationshipMap?.importantfamily ?? null,
+        otherfamily: outputValues.relationshipMap?.otherfamily ?? null,
+        importantfriends: outputValues.relationshipMap?.importantfriends ?? null,
+        otherfriends: outputValues.relationshipMap?.otherfriends ?? null,
+        importantcommunitymembers: outputValues.relationshipMap?.importantcommunitymembers ?? null,
+        othercommunitymembers: outputValues.relationshipMap?.othercommunitymembers ?? null,
+        importantsupport: outputValues.relationshipMap?.importantsupport ?? null,
+        othersupport: outputValues.relationshipMap?.othersupport ?? null,
+
+        youthperspective_relationships: outputValues.relationships?.youthperspective ?? null,
+        personperspective_relationships: outputValues.relationships?.personperspective ?? null,
+        familyguardian_relationships: outputValues.relationships?.familyperspective ?? null,
+        additionalinput_relationships: outputValues.relationships?.additionalinput ?? null,
+
+        youthperspective_support: outputValues.peoplewhosupport?.youthperspective ?? null,
+        personperspective_support: outputValues.peoplewhosupport?.personperspective ?? null,
+        familyguardian_support: outputValues.peoplewhosupport?.familyperspective ?? null,
+        additionalinput_support: outputValues.peoplewhosupport?.additionalinput ?? null,
+
+
+        youthperspective_hopesdreams: outputValues.hopesdreams?.youthperspective ?? null,
+        personperspective_hopesdreams: outputValues.hopesdreams?.personperspective ?? null,
+        familyguardian_hopesdreams: outputValues.hopesdreams?.familyperspective ?? null,
+        additionalinput_hopesdreams: outputValues.hopesdreams?.additionalinput ?? null,     
+        
+        otheravailabledocuments: outputValues.otheravailabledocuments ?? null
+      }
+
+      return outputResult;
     }
 
 
     function parseGeneralInfo(fullText) {
+      let doa = matchPattern(fullText, /Date of last update:\s*([\d\/]+)\s*/i);
+      let dob = matchPattern(fullText, /Date of birth:\s*([\d\/]+)/i);
+
+      /*
+      try {
+        doa = new Date(doa).toISOString();
+      } catch (error) {
+        doa = null;
+      }
+
+      try {
+        dob = new Date(dob).toISOString();
+      } catch (error) {
+        dob = null;
+      }
+      */
+
       return {
-        personsLegalName: matchPattern(fullText, /Person's legal name:\s*([^\n]+)/i),
-        preferredName: matchPattern(fullText, /What name does this person prefer to be called\?\s*([^\n]+)/i),
-        lastUpdated: matchPattern(fullText, /Date of last update:\s*([\d\/]+)\s*/i),
-        dateOfBirth: matchPattern(fullText, /Date of birth:\s*([\d\/]+)/i)
+        //personsLegalName: matchPattern(fullText, /Person's legal name:\s*([^\n]+)/i),
+        preferredname: matchPattern(fullText, /What name does this person prefer to be called\?\s*([^\n]+)/i),
+        dateofassessment: doa,
+        dateofbirth: dob,
+        familyguardian_perspective_needed: pciMode.familyperspective ? 'Yes' : 'No',
+        agecategory: pciMode.adult ? 'Adult' : 'Youth'
       }
     }
 
@@ -260,35 +418,24 @@
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Communication", "Life in current living arrangements");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
-      }
+      return parseSection(secText, "Communication & Current Living: Communication");
     }
 
     function parseCurrentLiving(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Life in current living arrangements", "Pre-employment and/or work");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
-      }
+      return parseSection(secText, "Communication & Current Living: Living Arrangements");
     }
 
     function parseEmployment(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Pre-employment and/or work", "School and life-long learning");
       if (secBlocks.length === 0) return null;
 
+      const relatedSkillsRegex = pciMode.adult ? /reliability, areas of focus if still in school, etc\.\s*([\s\S]*?)(?=Employment-related preferences|$)/i : /reliability, areas of focus at school, etc\.\s*([\s\S]*?)(?=Employment-related preferences|$)/i
       return {
-        preEmploymentOrWork: {
-          personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-          familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-          additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Employment-related skills|$)/i) || ""
-        },
-        relatedSkills: matchPattern(secText, /reliability, areas of focus at school, etc\.\s*([\s\S]*?)(?=Employment-related preferences|$)/i) || "",
+        preemployment: parseSection(secText, "Education & Employmment: Employment"),
+        employmentskills: matchPattern(secText, relatedSkillsRegex) || "",
         preferences: matchPattern(secText, /distance from home, type of job, type of tasks, pace, etc\.\s*([\s\S]*?)(?=$)/i) || "",
       }
     }
@@ -297,22 +444,14 @@
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "School and life-long learning", "Community and social life");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
-      }
+      return parseSection(secText, "Education & Employmment: School & Life-Long Learning");
     }
 
     function parseCommunityAndSocialLife(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Community and social life", "Relationship map");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
-      }
+      return parseSection(secText, "Communication & Current Living: Community & Social Life");
     }
 
     function parseRelationshipMap(allBlocks, allShapes) {
@@ -346,150 +485,141 @@
       }
 
       const tableCells = generateCellBoundingBoxes(tableLines);
-      return { relationshipMap: (tableCells[0]) ? mapTextToTableRows(tableCells[0], secBlocks, ['relationship', 'importantPeople', 'othersInvolved'], { joinStr: '\n' }) : [] };
+      const relationshipMap = (tableCells[0]) ? mapTextToTableRows(tableCells[0], secBlocks, ['relationship', 'importantPeople', 'othersInvolved'], { joinStr: '\n' }) : null;
+      let relationshipMapFlat = {};
+
+      if (relationshipMap) {
+        relationshipMap.forEach(r => {
+          relationshipKey = 'support';
+          if (r.relationship == 'Family') {
+            relationshipKey = 'family';
+          } else if (r.relationship == 'Friends') {
+            relationshipKey = 'friends';
+          } else if (r.relationship.indexOf('community') > -1) {
+            relationshipKey = 'communitymembers';
+          }
+          relationshipMapFlat['important' + relationshipKey] = r.importantPeople;
+          relationshipMapFlat['other' + relationshipKey] = r.othersInvolved;
+        });
+      }
+
+      let allNull = true;
+      for (key in relationshipMapFlat) {
+        if (relationshipMapFlat[key] != null) {
+          allNull = false;
+        }
+      }
+      if (allNull) {
+        relationshipMapFlat.systemInfo = "Relationship & Supports: Relationship Map";
+      }
+
+      return relationshipMapFlat;
     }
 
     function parseRelationshipPerspectives(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "opportunities to make choices about who is involved in planning at home and at school", "Characteristics of people who best support");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "about who is involved in planning at home and at school", "Characteristics of people who best support");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=$)/i) || ""
-      }
+      return parseSection(secText, "Relationship & Supports: Relationship");
     }
 
     function parsePeopleWhoSupport(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Characteristics of people who best support", "Relationships with medical professionals, child/adult specialists");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Characteristics of people who best support", "Relationships with medical professionals,");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Health and wellness|$)/i) || ""
-      }
+      return parseSection(secText, "Relationship & Supports: Characteristics of Best Supports");
     }
 
     function parseHealthAndWellness(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Relationships with medical professionals, child/adult specialists", "Developing skills to budget and manage own money");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Relationships with medical professionals,", pciMode.adult ? "Financial life" : "Developing skills to budget and manage own money");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Financial life|$)/i) || ""
-      }
+      return parseSection(secText, "Health and Wellness: Health and Wellness");
     }
 
     function parseFinancialLife(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Developing skills to budget and manage own money", "Protection and advocacy");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, pciMode.adult ? "Budgeting, managing money, using cash," : "Developing skills to budget and manage own money", "Protection and advocacy");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Protection and advocacy|$)/i) || ""
-      }
+      return parseSection(secText, "Independence & Supports: Financial Life");
     }
 
     function parseProtectionAndAdvocacy(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Protection and advocacy", "Cultural considerations");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Cultural considerations|$)/i) || ""
-      }
+      return parseSection(secText, "Independence & Supports: Protection & Advocacy");
     }
 
     function parseCulturalConsiderations(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Cultural considerations", "Education priorities or needs, safety considerations, etc");
+      const endStr = pciMode.adult ? "Education, family planning, privacy, anything that interferes with" : "Education priorities or needs, safety considerations, etc";
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Cultural considerations", endStr);
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Sexuality|$)/i) || ""
-      }
+      return parseSection(secText, "Independence & Supports: Cultural Considerations");
     }
 
-    function parseSexulaity(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Education priorities or needs, safety considerations, etc", "Concerns about mental health, relationship with any");
+    function parseSexuality(allBlocks) {
+      const startStr = pciMode.adult ? "Education, family planning, privacy, anything that interferes with" : "Education priorities or needs, safety considerations, etc";
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, startStr, "Mental health");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Concerns about mental health, relationship with any|$)/i) || ""
-      }
+      return parseSection(secText, "Health and Wellness: Sexuality");
     }
 
     function parseMentalHealth(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Concerns about mental health, relationship with any", "Concerns about behavioral health, relationship with any");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Concerns about mental health; relationship with any", "Behavioral health");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Concerns about behavioral health, relationship with any|$)/i) || ""
-      }
+      return parseSection(secText, "Health and Wellness: Mental Health");
     }
 
     function parseBehavioralHealth(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Concerns about behavioral health, relationship with any", "To/from school, activities, or work, learning how");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Concerns about behavioral health, relationship with any", "Transportation");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=To\/from school, activities, or work, learning how|$)/i) || ""
-      }
+      return parseSection(secText, "Health and Wellness: Behavioral Health");
     }
 
     function parseTransportation(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "To/from school, activities, or work, learning how", "Assistive devices (AD) or technology (AT)");
+      const startStr = pciMode.adult ? "To/from work, school, activities, learning how" : "To/from school, activities, or work, learning how";
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, startStr, "Assistive devices (AD) or technology (AT)");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Assistive devices \(AD\) or technology \(AT\)|$)/i) || ""
-      }
+      return parseSection(secText, "Independence & Supports: Transportation");
     }
 
     function parseAssistiveTechnology(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Assistive devices (AD) or technology (AT)", "Environmental modifications needed to increase");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Environmental modifications needed to increase|$)/i) || ""
-      }
+      return parseSection(secText, "Independence & Supports: Assistive Devices/Technology");
+    }
+
+    function parseEnvironmentalModifications(allBlocks) {
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "specialized electrical or plumbing systems,", "Hopes and dreams");
+      if (secBlocks.length === 0) return null;
+
+      return parseSection(secText, "Independence & Supports: Environmantal Modifications");
     }
 
     function parseHopesAndDreams(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Environmental modifications needed to increase", "Hopes and dreams");
+      const startStr = pciMode.adult ? "Personal goals, career goals, education goals," : "What the youth wants to do or be,";
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, startStr, "Other individualized planning documents");
       if (secBlocks.length === 0) return null;
 
-      return {
-        personperspective: matchPattern(secText, /(Youth|Person)'s perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || "",
-        familyperspective: matchPattern(secText, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || "",
-        additionalinput: matchPattern(secText, /Additional input:\s*([\s\S]*?)(?=Hopes and dreams|$)/i) || ""
-      }
+      return parseSection(secText, "Hopes & Planning: Hopes and Dreams");
     }
 
     function parseOtherPlanningDocuments(allBlocks) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "List other available documents that can be referenced for more information:", "Contributors to (youth|person)'s perspective");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "List other available documents that can be referenced for more information:", `Contributors to ${pciMode.adult ? 'person' : 'youth'}'s perspective`);
       if (secBlocks.length === 0) return null;
 
       return matchPattern(secText, /documents that can be referenced for more information:\s*([\s\S]*?)(?=Contributors to (youth|person)'s perspective|$)/i) || ""
     }
 
     function parseContributersToYouthPerspective(allBlocks, allShapes) {
-      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Contributors to (youth|person)'s perspective", "Contributors to family and/or guardian's perspective");
+      let [secBlocks, secText, endBlock] = isolateSection(allBlocks, `Contributors to ${pciMode.adult ? 'person' : 'youth'}'s perspective`, "Contributors to family and/or guardian's perspective");
       if (secBlocks.length === 0) return null;
 
       const topBound = secBlocks[0].global_bbox[3] - 2;
@@ -640,6 +770,40 @@
       const tableCells = generateCellBoundingBoxes(tableLines);
 
       return (tableCells[0]) ? mapTextToTableRows(tableCells[0], secBlocks, ['name', 'relationship']) : [];
+    }
+
+
+    function parseSection(str, sectionName) {
+      let result = {};
+      if (pciMode.familyperspective) {
+        if (pciMode.adult) {
+          result.personperspective = matchPattern(str, /Person's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || null;
+        } else {
+          result.youthperspective = matchPattern(str, /Youth's perspective:\s*([\s\S]*?)(?=Family and\/or guardian's perspective:|$)/i) || null;
+        }
+        result.familyperspective = matchPattern(str, /Family and\/or guardian's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || null;
+
+      } else {
+        if (pciMode.adult) {
+          result.personperspective = matchPattern(str, /Person's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || null;
+        } else {
+          result.youthperspective = matchPattern(str, /Youth's perspective:\s*([\s\S]*?)(?=Additional input:|$)/i) || null;
+        }
+      }
+
+      result.additionalinput = matchPattern(str, /Additional input:\s*([\s\S]*?)(?=$)/i) || null;
+
+      let allNull = true;
+      for (key in result) {
+        if (result[key] != null) {
+          allNull = false;
+        }
+      }
+      if (allNull) {
+        result.systemInfo = sectionName;
+      }
+
+      return result;
     }
   </script>
 
