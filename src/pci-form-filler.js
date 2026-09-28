@@ -1,39 +1,11 @@
 function showErrorAlertModal(error) {
-    // Invoke the asynchronous alert box
-    Xrm.Navigation.openAlertDialog({ 
-        title: "Error", 
-        text: "Something went wrong: " + error, 
-        confirmButtonLabel: "Close" 
-    }, { 
-        height: 220, 
-        width: 450 
-    }).then(
-        function (success) { console.log("Alert closed by the user."); },
-        function (error) { console.log("Error displaying alert: " + error.message); }
-    );
-}
-
-function showConfirmationModal(executionContext) {
-    Xrm.Navigation.openConfirmDialog({
-        title: "Confirm Client",
-        subtitle: "Optional subtitle",
-        text: "Are you sure you want to proceed with this action?",
-        confirmButtonLabel: "Yes",
-        cancelButtonLabel: "No"
-    }, { 
-        height: 200, 
-        width: 450 
-    }).then(
-        function (success) {
-            if (success.confirmed) {
-                // Add code here to run if user clicks "Yes"
-                console.log("User clicked OK/Confirm.");
-            } else {
-                // Add code here to run if user clicks "No"
-                console.log("User clicked Cancel.");
-            }
+    Xrm.Navigation.openAlertDialog(
+        {
+            title: "Error",
+            text: "Something went wrong: " + error,
+            confirmButtonLabel: "Close",
         },
-        function (error) { console.log("Error: " + error.message); }
+        { height: 220, width: 450 }
     );
 }
 
@@ -46,77 +18,112 @@ function promptForJSONdata(primaryControl) {
     try {
         var pciFormData = JSON.parse(jsonInput);
 
-        //pciFormData.preferredname;
-        //pciFormData.dateofbirth;
-
-        Xrm.Navigation.openConfirmDialog({
-            title: "Confirm Client",
-            subtitle: pciFormData.preferredname + ' - ' + pciFormData.dateofbirth,
-            text: "Is this the correct client?",
-            confirmButtonLabel: "Yes",
-            cancelButtonLabel: "No"
-        }, { 
-            height: 200, 
-            width: 450 
-        }).then(
+        Xrm.Navigation.openConfirmDialog(
+            {
+                title: "Confirm Client",
+                subtitle: (pciFormData.preferredname || "Unknown") + " - " + (pciFormData.dateofbirth || "No DOB"),
+                text: "Is this the correct client?",
+                confirmButtonLabel: "Yes",
+                cancelButtonLabel: "No",
+            },
+            { height: 200, width: 450 }
+        ).then(
             function (success) {
-                if (success.confirmed) {
-                    Xrm.Page.getAttribute("rsmhhs_agecategory").setValue(pciFormData.agecategory);
+                if (!success.confirmed) {
+                    console.log("User clicked Cancel.");
+                    return;
+                }
 
-                    setTimeout (() => {
-                        if (pciFormData.agecategory == 592570001) { // if "Adult"
-                            Xrm.Page.getAttribute("rsmhhs_agecategory").setValue(pciFormData.familyguardian_perspective_needed);
+                // 1. Focus the general tab
+                Xrm.Page.ui.tabs.forEach((t) => {
+                    if (t.getLabel() == "General") {
+                        t.setVisible(true);
+                        t.setDisplayState("expanded");
+                        t.setFocus();
+                    }
+                });
+
+                // Wrap inner async execution to safely catch downstream errors
+                setTimeout(() => {
+                    try {
+                        let ageElem = Xrm.Page.getAttribute("rsmhhs_agecategory");
+                        if (ageElem) {
+                            ageElem.setValue(pciFormData.agecategory);
+                            ageElem.fireOnChange();
                         }
-                    
-                        setTimeout(() => {
-                            if (pciFormData.dateofassessment) {
-                                Xrm.Page.getAttribute("rsmhhs_dateofassessment").setValue(new Date(pciFormData.dateofassessment));
-                            }
 
-                            for (key in pciFormData) {
-                                if (
-                                    key != "agecategory" &&
-                                    key != "familyguardian_perspective_needed" &&
-                                    key != "preferredname" &&
-                                    key != "dateofbirth" && 
-                                    key != "dateofassessment" &&
-                                    key.indexOf('system_info') == -1  // make sure it's not system info
-                                ) {
-                                    if (pciFormData[key]) {
-                                        Xrm.Page.getAttribute("rsmhhs_" + key).setValue(pciFormData[key]);
+                        setTimeout(() => {
+                            try {
+                                if (pciFormData.agecategory == 592570001) { // "Adult"
+                                    // FIXED: Changed schema name mapping from agecategory to familyguardian parameter
+                                    let perElem = Xrm.Page.getAttribute("rsmhhs_familyguardian_perspective_needed");
+                                    if (perElem) {
+                                        perElem.setValue(pciFormData.familyguardian_perspective_needed);
+                                        perElem.fireOnChange();
                                     }
                                 }
-                            }
 
-                            // Invoke an alert box
-                            let confirmFinalText = "Please complete the following sections manually, then save:\nContributors\nRecord Administration"; 
-                            if (pciFormData.system_info) {
-                                confirmFinalText += '\n\n' + pciFormData.system_info;
-                            }
+                                setTimeout(() => {
+                                    try {
+                                        if (pciFormData.dateofassessment) {
+                                            let dateElem = Xrm.Page.getAttribute("rsmhhs_dateofassessment");
+                                            if (dateElem) dateElem.setValue(new Date(pciFormData.dateofassessment));
+                                        }
 
-                            Xrm.Navigation.openAlertDialog({ 
-                                title: "Next steps", 
-                                text: confirmFinalText, 
-                                confirmButtonLabel: "OK"
-                            }, { 
-                                height: confirmFinalText.split('\n').length * 16 + 250, 
-                                width: 450 
-                            }).then(
-                                function (success) { console.log("Alert closed by the user."); },
-                                function (error) { console.log("Error displaying alert: " + error.message); }
-                            );
+                                        for (let key in pciFormData) {
+                                            if (
+                                                key != "agecategory" &&
+                                                key != "familyguardian_perspective_needed" &&
+                                                key != "preferredname" &&
+                                                key != "dateofbirth" &&
+                                                key != "dateofassessment" &&
+                                                key.indexOf("system_info") == -1
+                                            ) {
+                                                if (pciFormData[key]) {
+                                                    let attributeName = "rsmhhs_" + key;
+                                                    let formAttr = Xrm.Page.getAttribute(attributeName);
+                                                    
+                                                    if (formAttr) {
+                                                        // FIXED: Use getControl() instead of getAttribute() for visibility logic
+                                                        let formCtrl = Xrm.Page.getControl(attributeName);
+                                                        if (formCtrl) {
+                                                            formCtrl.setVisible(true);
+                                                        }
+                                                        formAttr.setValue(pciFormData[key]);
+                                                    }
+                                                }
+                                            }
+                                        }
 
-                        }, 500);
-                    }, 500);
+                                        // Formulate final success notification alert modal windows
+                                        let confirmFinalText = "Please complete the following sections manually, then save:\n• Contributors\n• Record Administration";
+                                        if (pciFormData.system_info) {
+                                            confirmFinalText += "\n\nDouble-check the following sections:" + ("\n" + pciFormData.system_info.trim()).replace(/\n/g, "\n• ");
+                                        }
 
-                } else {
-                    // Add code here to run if user clicks "No"
-                    console.log("User clicked Cancel.");
-                }
+                                        Xrm.Navigation.openAlertDialog(
+                                            {
+                                                title: "Next steps",
+                                                text: confirmFinalText,
+                                                confirmButtonLabel: "OK",
+                                            },
+                                            {
+                                                height: confirmFinalText.split("\n").length * 16 + 200,
+                                                width: 450,
+                                            }
+                                        );
+
+                                    } catch (e3) { showErrorAlertModal("Error populating fields: " + e3.message); }
+                                }, 1500);
+
+                            } catch (e2) { showErrorAlertModal("Error setting family/guardian perspective selection: " + e2.message); }
+                        }, 750);
+
+                    } catch (e1) { showErrorAlertModal("Error setting Adult/Youth selection: " + e1.message); }
+                }, 500);
             },
             function (error) { showErrorAlertModal(error.message); }
         );
-
     } catch (error) {
         showErrorAlertModal(error.message);
     }

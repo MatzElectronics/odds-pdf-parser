@@ -604,7 +604,7 @@
     }
 
     function parseHopesAndDreams(allBlocks) {
-      const startStr = pciMode.adult ? "Personal goals, career goals, education goals," : "What the youth wants to do or be,";
+      const startStr = pciMode.adult ? "Personal goals, career goals, education goals," : "for now and the future, education goals, where";
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, startStr, "Other individualized planning documents");
       if (secBlocks.length === 0) return null;
 
