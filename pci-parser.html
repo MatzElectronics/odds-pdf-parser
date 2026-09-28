@@ -416,25 +416,26 @@
 
     function parseCommunication(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Communication", "Life in current living arrangements");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Communication & Current Living: Communication");
+      let secName = "Communication & Current Living: Communication";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseCurrentLiving(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Life in current living arrangements", "Pre-employment and/or work");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Communication & Current Living: Living Arrangements");
+      let secName = "Communication & Current Living: Living Arrangements";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseEmployment(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Pre-employment and/or work", "School and life-long learning");
-      if (secBlocks.length === 0) return null;
+      let secName = "Education & Employmment: Employment";
+      if (secBlocks.length === 0) return {systemInfo: secName};
 
       const relatedSkillsRegex = pciMode.adult ? /reliability, areas of focus if still in school, etc\.\s*([\s\S]*?)(?=Employment-related preferences|$)/i : /reliability, areas of focus at school, etc\.\s*([\s\S]*?)(?=Employment-related preferences|$)/i
       return {
-        preemployment: parseSection(secText, "Education & Employmment: Employment"),
+        preemployment: parseSection(secText, secName),
         employmentskills: matchPattern(secText, relatedSkillsRegex) || "",
         preferences: matchPattern(secText, /distance from home, type of job, type of tasks, pace, etc\.\s*([\s\S]*?)(?=$)/i) || "",
       }
@@ -442,21 +443,23 @@
 
     function parseSchoolAndLearning(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "School and life-long learning", "Community and social life");
-      if (secBlocks.length === 0) return null;
+      let secName = "Education & Employmment: School & Life-Long Learning";
+      if (secBlocks.length === 0) return {systemInfo: secName};
 
-      return parseSection(secText, "Education & Employmment: School & Life-Long Learning");
+      return parseSection(secText, secName);
     }
 
     function parseCommunityAndSocialLife(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Community and social life", "Relationship map");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Communication & Current Living: Community & Social Life");
+      let secName = "Communication & Current Living: Community & Social Life";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseRelationshipMap(allBlocks, allShapes) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Relationship map", "Anything about current relationships");
-      if (secBlocks.length === 0) return null;
+      let secName = "Relationship & Supports: Relationship Map";
+      if (secBlocks.length === 0) return {systemInfo: secName};
 
       const topBound = secBlocks[0].global_bbox[3] - 2;
       const bottomBound = secBlocks[secBlocks.length - 1].global_bbox[3] + 5;
@@ -510,7 +513,7 @@
         }
       }
       if (allNull) {
-        relationshipMapFlat.systemInfo = "Relationship & Supports: Relationship Map";
+        relationshipMapFlat.systemInfo = secName;
       }
 
       return relationshipMapFlat;
@@ -518,109 +521,108 @@
 
     function parseRelationshipPerspectives(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "about who is involved in planning at home and at school", "Characteristics of people who best support");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Relationship & Supports: Relationship");
+      let secName = "Relationship & Supports: Relationship";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parsePeopleWhoSupport(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Characteristics of people who best support", "Relationships with medical professionals,");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Relationship & Supports: Characteristics of Best Supports");
+      let secName = "Relationship & Supports: Characteristics of Best Supports";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseHealthAndWellness(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Relationships with medical professionals,", pciMode.adult ? "Financial life" : "Developing skills to budget and manage own money");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Health and Wellness: Health and Wellness");
+      let secName = "Health and Wellness: Health and Wellness";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseFinancialLife(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, pciMode.adult ? "Budgeting, managing money, using cash," : "Developing skills to budget and manage own money", "Protection and advocacy");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Independence & Supports: Financial Life");
+      let secName = "Independence & Supports: Financial Life";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseProtectionAndAdvocacy(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Protection and advocacy", "Cultural considerations");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Independence & Supports: Protection & Advocacy");
+      let secName = "Independence & Supports: Protection & Advocacy";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseCulturalConsiderations(allBlocks) {
       const endStr = pciMode.adult ? "Education, family planning, privacy, anything that interferes with" : "Education priorities or needs, safety considerations, etc";
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Cultural considerations", endStr);
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Independence & Supports: Cultural Considerations");
+      let secName = "Independence & Supports: Cultural Considerations";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseSexuality(allBlocks) {
       const startStr = pciMode.adult ? "Education, family planning, privacy, anything that interferes with" : "Education priorities or needs, safety considerations, etc";
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, startStr, "Mental health");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Health and Wellness: Sexuality");
+      let secName = "Health and Wellness: Sexuality";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseMentalHealth(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Concerns about mental health; relationship with any", "Behavioral health");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Health and Wellness: Mental Health");
+      let secName = "Health and Wellness: Mental Health";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseBehavioralHealth(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Concerns about behavioral health, relationship with any", "Transportation");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Health and Wellness: Behavioral Health");
+      let secName = "Health and Wellness: Behavioral Health";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseTransportation(allBlocks) {
       const startStr = pciMode.adult ? "To/from work, school, activities, learning how" : "To/from school, activities, or work, learning how";
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, startStr, "Assistive devices (AD) or technology (AT)");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Independence & Supports: Transportation");
+      let secName = "Independence & Supports: Transportation";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseAssistiveTechnology(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Assistive devices (AD) or technology (AT)", "Environmental modifications needed to increase");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Independence & Supports: Assistive Devices/Technology");
+      let secName = "Independence & Supports: Assistive Devices/Technology";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseEnvironmentalModifications(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "specialized electrical or plumbing systems,", "Hopes and dreams");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Independence & Supports: Environmantal Modifications");
+      let secName = "Independence & Supports: Environmantal Modifications";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseHopesAndDreams(allBlocks) {
       const startStr = pciMode.adult ? "Personal goals, career goals, education goals," : "for now and the future, education goals, where";
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, startStr, "Other individualized planning documents");
-      if (secBlocks.length === 0) return null;
-
-      return parseSection(secText, "Hopes & Planning: Hopes and Dreams");
+      let secName = "Hopes & Planning: Hopes and Dreams";
+      if (secBlocks.length === 0) return {systemInfo: secName};
+      return parseSection(secText, secName);
     }
 
     function parseOtherPlanningDocuments(allBlocks) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "List other available documents that can be referenced for more information:", `Contributors to ${pciMode.adult ? 'person' : 'youth'}'s perspective`);
-      if (secBlocks.length === 0) return null;
-
+      if (secBlocks.length === 0) return {systemInfo: "Hopes & Planning: Other Planning Documents"};
       return matchPattern(secText, /documents that can be referenced for more information:\s*([\s\S]*?)(?=Contributors to (youth|person)'s perspective|$)/i) || ""
     }
 
     function parseContributersToYouthPerspective(allBlocks, allShapes) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, `Contributors to ${pciMode.adult ? 'person' : 'youth'}'s perspective`, "Contributors to family and/or guardian's perspective");
-      if (secBlocks.length === 0) return null;
+      if (secBlocks.length === 0) return {systemInfo: "Contributors: Youth Perspective"};
 
       const topBound = secBlocks[0].global_bbox[3] - 2;
       const bottomBound = secBlocks[secBlocks.length - 1].global_bbox[3] + 5;
@@ -674,7 +676,7 @@
 
     function parseContributersToGuardianPerspective(allBlocks, allShapes) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Contributors to family and/or guardian's perspective", "Contributors to additional input");
-      if (secBlocks.length === 0) return null;
+      if (secBlocks.length === 0) return {systemInfo: "Contributors: Parent/Guardian Perspective"};
 
       const topBound = secBlocks[0].global_bbox[3] - 2;
       const bottomBound = secBlocks[secBlocks.length - 1].global_bbox[3] + 5;
@@ -724,7 +726,7 @@
 
     function parseContributersToAdditionalInput(allBlocks, allShapes) {
       let [secBlocks, secText, endBlock] = isolateSection(allBlocks, "Contributors to additional input", "This form may contain your personal information");
-      if (secBlocks.length === 0) return null;
+      if (secBlocks.length === 0) return {systemInfo: "Contributors: Additional Input"};
 
       const topBound = secBlocks[0].global_bbox[3] - 2;
       const bottomBound = secBlocks[secBlocks.length - 1].global_bbox[3] + 5;
